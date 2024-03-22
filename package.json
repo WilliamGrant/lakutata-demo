@@ -1,0 +1,27 @@
+{
+  "name": "lakutata-demo",
+  "version": "1.0.0",
+  "description": "测试",
+  "scripts": {
+    "clean": "shx rm -rf ./build",
+    "build": "tsc",
+    "rebuild": "npm run clean && npm run build",
+    "prepare": "npm run compile",
+    "compile": "npm run rebuild",
+    "test": "node -r ./node_modules/ts-node/register src/tests/App.spec.ts"
+  },
+  "keywords": [],
+  "author": "zzl",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^20.12.7",
+    "cross-env": "^7.0.3",
+    "dotenv-cli": "^7.4.1",
+    "lakutata": "^2.0.8",
+    "reflect-metadata": "^0.2.2",
+    "rollup": "^4.16.1",
+    "shx": "^0.3.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
