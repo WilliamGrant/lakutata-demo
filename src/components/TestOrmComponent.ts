@@ -10,8 +10,8 @@ export class TestOrmComponent extends Component{
     @Inject()
     protected readonly log: Logger
 
-    // @Inject('db')
-    // protected readonly db:DataSource
+    @Inject('db')
+    protected readonly db:DataSource
 
     /**
      * if you want todo something when compoment initlization, please wirte here
@@ -20,8 +20,8 @@ export class TestOrmComponent extends Component{
         this.log.info('TestComponent initialized')
     }
 
-    // public async get(){
-    //     const data= await this.db.getRepository(User).findAndCount()
-    //     console.log('data',data)
-    // }
+    public async get(){
+        const data= await this.db.getRepository(User).findAndCount()
+        console.log('data',data)
+    }
 }

@@ -22,6 +22,7 @@
     "rollup": "^4.16.1",
     "shx": "^0.3.4",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "fastify": "^4.26.2"
   }
 }
