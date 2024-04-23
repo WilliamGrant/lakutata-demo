@@ -1,4 +1,5 @@
 {
+  "extends":"lakutata/tsconfig.json",
   "compilerOptions": {
     "target": "ES2022",
     "lib": [

@@ -11,7 +11,7 @@ export class TestOrmComponent extends Component{
     protected readonly log: Logger
 
     @Inject('db')
-    protected readonly db:DataSource
+    protected readonly db:Database
 
     /**
      * if you want todo something when compoment initlization, please wirte here

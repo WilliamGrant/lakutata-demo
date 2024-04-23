@@ -4,6 +4,7 @@ import { Logger } from "lakutata/com/logger";
 import { CLIAction, HTTPAction, ServiceAction } from "lakutata/decorator/ctrl";
 import { Inject } from "lakutata/decorator/di";
 import { TestDTO } from "../lib/dto/TestDTO";
+import { TestOrmComponent } from "../components/TestOrmComponent";
 
 export class TestController extends Controller {
 
@@ -12,6 +13,9 @@ export class TestController extends Controller {
 
     @Inject(Application)
     protected readonly app: Application
+
+    @Inject('testOrmCompoment')
+    protected readonly testOrmCompoment:TestOrmComponent
 
     protected async init(): Promise<void> {
         this.log.info(this.app.appName, 'init')
@@ -55,4 +59,9 @@ export class TestController extends Controller {
         return 'oh!!!!!!!!!!' + this.getEnv('TEST', 'abcd')
     }
 
+
+    @HTTPAction('/testOrmMethod', 'GET')
+    public async testOrmMethod(){
+        return await this.testOrmCompoment.get()
+    }
 }

@@ -1,4 +1,4 @@
-import { DataSourceOptions } from "lakutata/orm";
+import { DataSource, DataSourceOptions } from "lakutata/orm";
 import { DataBaseConfig } from "./DataBaseConfig";
 import { DatabaseType } from "../lib/enum/DataBaseType";
 import { ApplicationOptions } from "lakutata";
@@ -7,10 +7,10 @@ import { TestController } from "../controllers/TestController";
 import { TestOrmComponent } from '../components/TestOrmComponent'
 import Fastify from 'fastify'
 import { As } from 'lakutata/helper'
+import { Database } from "lakutata/com/database";
 
 
 export class Configuration {
-
 
     protected options: {
         id: string;
@@ -26,6 +26,8 @@ export class Configuration {
          * runtime environment (development or production, default value is development)
          */
         mode?: 'development' | 'production';
+
+        isProd: boolean
     }
 
     constructor(isProd: boolean = false) {
@@ -33,7 +35,8 @@ export class Configuration {
             id: 'test.app',
             name: 'test.app',
             mode: isProd ? 'production' : 'development',
-            timezone: 'auto'
+            timezone: 'auto',
+            isProd: isProd
         }
     }
 
@@ -43,6 +46,13 @@ export class Configuration {
             name: this.options.name,
             timezone: this.options.timezone,
             components: {
+                db: {
+                    class: Database,
+                    options: DataBaseConfig(this.options.isProd, DatabaseType.MYSQL)
+                },
+                testOrmCompoment: {
+                    class: TestOrmComponent
+                },
                 entrypoint: BuildEntrypoints({
                     controllers: [
                         TestController
@@ -87,9 +97,5 @@ export class Configuration {
                 'entrypoint'
             ]
         }
-    }
-
-    public dataBaseConfig(isProd: boolean = true, type: DatabaseType = DatabaseType.MYSQL): DataSourceOptions {
-        return DataBaseConfig(isProd, type)
     }
 }

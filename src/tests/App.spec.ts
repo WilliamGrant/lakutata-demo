@@ -1,11 +1,10 @@
 import { Application } from 'lakutata'
 import { Configuration } from '../config/Config'
 
-const configuration = new Configuration()
 
 Application
     .env({ TEST: '123' })
-    .run(configuration.config())
+    .run( new Configuration().config())
     .alias({
     }, true)
     .onLaunched(async (app, log) => {
