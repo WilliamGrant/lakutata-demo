@@ -8,7 +8,6 @@ export class TestAliasComponent extends Component {
 
     public async getPath() {
         const path = this.app.alias.get('@xml')
-        this.app
         console.log('path',path)
     }
 }
