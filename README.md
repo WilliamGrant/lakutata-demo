@@ -36,7 +36,7 @@ lakutata framework the core of main contents include: application instance objec
 
 1. Application
 2. Component
-3. Contrainer
+3. Container
 4. Module
 5. Alias
 6. Provider
