@@ -48,7 +48,76 @@ lakutata framework the core of main contents include: application instance objec
 Application is main Module,That Class base on Module Class,We can init it and inject the applicationton object into the DI container(rootContainer)
 
 2. Component
-Component extend by Provider class,Each component has its own internal container inside,The component provides communication methods between other components such as emit and listening methods.We put the same type of functionality method into the same component so that the instance of this component can be used after injection
+Component is extended based on the Provider class. Each component has its own internal container. After instantiation through injection, you can use global calls. The component provides communication methods between other components such as emit and listening.
+```typescript
+
+    public config(): ApplicationOptions {
+        return {
+            id: this.options.id,
+            name: this.options.name,
+            timezone: this.options.timezone,
+            components: {
+                db: {
+                    class: Database,
+                    options: DataBaseConfig(this.options.isProd, DatabaseType.MYSQL)
+                },
+                testOrmCompoment: {
+                    class: TestOrmComponent
+                },
+                testAliasComponent:{
+                    class:TestAliasComponent
+                },
+                emitEventComponent:{
+                    class:EmitEventComponent
+                }
+            },
+            bootstrap: [
+                // 'testModule',
+                // 'testComponent',
+                // 'testProvider',
+                'entrypoint'
+            ]
+        }
+    }
+
+```
+First, declare the component information in the configuration file, and then inject it into the object used to instantiate it.
+```javascript
+import { Component } from "lakutata";
+import { Database } from "lakutata/com/database";
+import { Logger } from "lakutata/com/logger";
+import { Inject } from "lakutata/decorator/di";
+import { User } from "../entities/db/User";
+import { EmitEventComponent } from "./EmitEventComponet";
+export class TestOrmComponent extends Component{
+    
+    @Inject()
+    protected readonly log: Logger
+
+    @Inject('db')
+    protected readonly db:Database
+
+    /**
+     * if you want todo something when compoment initlization, please wirte here
+     */
+    @Inject('emitEventComponent')
+    protected readonly emitInstance: EmitEventComponent
+  
+    protected async init(): Promise<void> {
+      console.log('TestOrmComponent init!')
+
+      //listen other component emit event msg
+      this.emitInstance.addListener('testEmitEvent', (res) => {
+        console.log('TestOrmComponent Listener:', res)
+      })
+    }
+
+    public async get(){
+        const data= await this.db.getRepository(User).findAndCount()
+        console.log('data',data)
+    }
+}
+```
 
 3. Container
 Dependency container include application、component、module、provider
@@ -176,6 +245,7 @@ Application
 
 
 7. DTO
+
 Dto is often used to verify whether structures and values meet requirements,you can used it for controller param,component,object,such like that:
 ```ts
     @HTTPAction('/test/:id', ['GET', 'POST'], TestDTO)
@@ -202,12 +272,12 @@ lakutata core lib include Time tool class.you can get application's uptime or im
 
 ## 💫 use
 
--   安装依赖
+-   install lakutata dependency
 
 ```bash
 npm i lakutata
 ```
--   运行
+-   install dependency
 
 ```bash
 npm install

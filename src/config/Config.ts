@@ -10,6 +10,7 @@ import { As } from 'lakutata/helper'
 import { Database } from "lakutata/com/database";
 import path from "path";
 import { TestAliasComponent } from "../components/TestAliasComponent";
+import { EmitEventComponent } from "../components/EmitEventComponet";
 
 
 export class Configuration {
@@ -57,6 +58,9 @@ export class Configuration {
                 },
                 testAliasComponent:{
                     class:TestAliasComponent
+                },
+                emitEventComponent:{
+                    class:EmitEventComponent
                 },
                 entrypoint: BuildEntrypoints({
                     controllers: [

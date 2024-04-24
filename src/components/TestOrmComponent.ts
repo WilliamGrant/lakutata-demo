@@ -2,11 +2,10 @@ import { Component } from "lakutata";
 import { Database } from "lakutata/com/database";
 import { Logger } from "lakutata/com/logger";
 import { Inject } from "lakutata/decorator/di";
-import { DataSource } from "lakutata/orm";
 import { User } from "../entities/db/User";
+import { EmitEventComponent } from "./EmitEventComponet";
 export class TestOrmComponent extends Component{
     
-
     @Inject()
     protected readonly log: Logger
 
@@ -16,8 +15,16 @@ export class TestOrmComponent extends Component{
     /**
      * if you want todo something when compoment initlization, please wirte here
      */
+    @Inject('emitEventComponent')
+    protected readonly emitInstance: EmitEventComponent
+  
     protected async init(): Promise<void> {
-        this.log.info('TestComponent initialized')
+      console.log('TestOrmComponent init!')
+
+      //listen other component emit event msg
+      this.emitInstance.addListener('testEmitEvent', (res) => {
+        console.log('TestOrmComponent Listener:', res)
+      })
     }
 
     public async get(){
