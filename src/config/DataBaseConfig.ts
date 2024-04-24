@@ -5,10 +5,10 @@ import * as entities from "../entities"
 
 export function DataBaseConfig(isProd: boolean, type: DatabaseType): DataSourceOptions {
     const database: string = process.env.MYSQL_DB ? process.env.MYSQL_DB : 'test'
-    const host: string | undefined = process.env.MYSQL_HOST ? process.env.MYSQL_HOST : isProd ? undefined : '192.168.0.123'
+    const host: string | undefined = process.env.MYSQL_HOST ? process.env.MYSQL_HOST : isProd ? undefined : '192.168.0.145'
     const port: number = parseInt(process.env.MYSQL_PORT ? process.env.MYSQL_PORT : '3306')
     const username: string | undefined = process.env.MYSQL_USERNAME ? process.env.MYSQL_USERNAME : isProd ? undefined : 'root'
-    const password: string | undefined = process.env.MYSQL_PASSWORD ? process.env.MYSQL_PASSWORD : isProd ? undefined : '123456'
+    const password: string | undefined = process.env.MYSQL_PASSWORD ? process.env.MYSQL_PASSWORD : isProd ? undefined : '20160329'
 
     let configOption: DataSourceOptions = {
         name: 'default',
@@ -16,7 +16,6 @@ export function DataBaseConfig(isProd: boolean, type: DatabaseType): DataSourceO
         database: database,
         // logger: new ORMLogger(),
         // logging: ['query', 'error'],
-        // entities: Object.values(entities),
         entities: Object.values(entities),
         migrations: ['../migration/*.{js,ts}'],
         synchronize: true,
@@ -25,6 +24,5 @@ export function DataBaseConfig(isProd: boolean, type: DatabaseType): DataSourceO
         username: username,
         password: password
     }
-    console.log(configOption)
     return configOption
 }

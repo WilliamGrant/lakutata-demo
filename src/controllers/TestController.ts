@@ -5,6 +5,7 @@ import { CLIAction, HTTPAction, ServiceAction } from "lakutata/decorator/ctrl";
 import { Inject } from "lakutata/decorator/di";
 import { TestDTO } from "../lib/dto/TestDTO";
 import { TestOrmComponent } from "../components/TestOrmComponent";
+import { TestAliasComponent } from "../components/TestAliasComponent";
 
 export class TestController extends Controller {
 
@@ -15,7 +16,10 @@ export class TestController extends Controller {
     protected readonly app: Application
 
     @Inject('testOrmCompoment')
-    protected readonly testOrmCompoment:TestOrmComponent
+    protected readonly testOrm:TestOrmComponent
+
+    @Inject('testAliasComponent')
+    protected readonly testAlias:TestAliasComponent
 
     protected async init(): Promise<void> {
         this.log.info(this.app.appName, 'init')
@@ -62,6 +66,11 @@ export class TestController extends Controller {
 
     @HTTPAction('/testOrmMethod', 'GET')
     public async testOrmMethod(){
-        return await this.testOrmCompoment.get()
+        return await this.testOrm.get()
+    }
+
+    @HTTPAction('/testAlias', 'GET')
+    public async testAliasMethod(){
+        return await this.testAlias.getPath()
     }
 }

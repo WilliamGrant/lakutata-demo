@@ -8,6 +8,8 @@ import { TestOrmComponent } from '../components/TestOrmComponent'
 import Fastify from 'fastify'
 import { As } from 'lakutata/helper'
 import { Database } from "lakutata/com/database";
+import path from "path";
+import { TestAliasComponent } from "../components/TestAliasComponent";
 
 
 export class Configuration {
@@ -53,6 +55,9 @@ export class Configuration {
                 testOrmCompoment: {
                     class: TestOrmComponent
                 },
+                testAliasComponent:{
+                    class:TestAliasComponent
+                },
                 entrypoint: BuildEntrypoints({
                     controllers: [
                         TestController
@@ -96,6 +101,13 @@ export class Configuration {
                 // 'testProvider',
                 'entrypoint'
             ]
+        }
+    }
+
+    public loadAlise() {
+        return {
+            '@rootPath': path.resolve(__dirname, './file'),
+            '@xml': '@rootPath/xml'
         }
     }
 }

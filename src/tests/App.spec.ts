@@ -1,11 +1,15 @@
 import { Application } from 'lakutata'
 import { Configuration } from '../config/Config'
+import path from 'path'
 
+const configuration = new Configuration()
 
 Application
     .env({ TEST: '123' })
-    .run( new Configuration().config())
+    .run(configuration.config())
     .alias({
+        '@rootPath': path.resolve(__dirname, './file'),
+        '@xml': '@rootPath/xml'
     }, true)
     .onLaunched(async (app, log) => {
         log.info('Application %s launched', app.appName)
