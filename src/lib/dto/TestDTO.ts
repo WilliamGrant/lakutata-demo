@@ -3,8 +3,8 @@ import { Expect } from "lakutata/decorator/dto"
 
 export class TestDTO extends DTO {
     @Expect(DTO.String().optional())
-    public aaa: string
+    public id: string
 
-    @Expect(DTO.Number().required().strict(false).description('hahahaha'))
-    public bbb: number
+    @Expect(DTO.Number().required().strict(true).description('please input number'))
+    public count: number
 }

@@ -15,11 +15,13 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^20.12.7",
+    "commander": "^12.0.0",
     "fastify": "^4.26.2",
     "lakutata": "^2.0.8",
     "mysql": "^2.18.1",
     "reflect-metadata": "^0.2.2",
     "shx": "^0.3.4",
+    "socket.io": "^4.7.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   }

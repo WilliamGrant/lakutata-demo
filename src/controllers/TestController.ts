@@ -7,6 +7,7 @@ import { TestDTO } from "../lib/dto/TestDTO";
 import { TestOrmComponent } from "../components/TestOrmComponent";
 import { TestAliasComponent } from "../components/TestAliasComponent";
 import { EmitEventComponent } from "../components/EmitEventComponet";
+import { CliTestDTO } from "../lib/dto/CliTestDTO";
 
 export class TestController extends Controller {
 
@@ -39,32 +40,16 @@ export class TestController extends Controller {
         return 'this test action!'
     }
 
-    @HTTPAction('/test/:id', ['GET', 'POST'], TestDTO)
-    @CLIAction('test3', TestDTO)
-    @ServiceAction({
-        act: 'test3',
-        bbc: {
-            abc: true,
-            ccc: 1
-        }
-    })
-    public async test3(inp: ActionPattern<TestDTO>) {
+
+    @HTTPAction('/test2', 'POST',TestDTO)
+    public async test2(ipn:ActionPattern<TestDTO>){
+        return 'Validate success!'
+    }
+
+    @CLIAction('test3', CliTestDTO)
+    public async test3(inp: ActionPattern<CliTestDTO>) {
         if (this.context.type === ContextType.CLI) console.log('cli!')
         console.log(inp, this.context.type)
-
-        // //Reload app
-        // setTimeout(() => {
-        //     this.app.reload()
-        // }, 1000)
-
-        // if (this.context.type === ContextType.HTTP) {
-        //     console.log(isProxy(As<HTTPContext>(this.context).response))
-        //     As<HTTPContext>(this.context).response.write(new Time().format())
-        //     As<HTTPContext>(this.context).response.end()
-        // } else {
-        //     // await Delay(3000)
-        //     return 'oh!!!!!!!!!!'
-        // }
         return 'oh!!!!!!!!!!' + this.getEnv('TEST', 'abcd')
     }
 
@@ -82,5 +67,15 @@ export class TestController extends Controller {
     @HTTPAction('/testEmit', 'GET')
     public async testEmitMethod(){
         return await this.emitEvent.testEmit()
+    }
+
+    
+    @ServiceAction({
+        act: 'test',
+        method:'test5'
+    })
+    public async test5(inp:ActionPattern<TestDTO>){
+        console.log('test5',inp)
+        return '5555'
     }
 }

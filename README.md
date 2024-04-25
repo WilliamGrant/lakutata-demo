@@ -32,7 +32,46 @@ to freely encapsulate and call third-party modules using Lakutata's dependency i
 
 lakutata framework the core of main contents include: application instance objects, application components, containers, and modules,such like the picture. and alias、 proveder、dto、time is suport
 
-## 1.Interduce
+## 💫 use
+
+-   install lakutata dependency
+
+```bash
+npm i lakutata
+```
+-   install dependency
+
+```bash
+npm install
+```
+### application init
+
+We uselly init App begin from setting Application options.after initlization options finished,We will get the new application instance that needs to be configured.
+
+```typescript
+Application
+    .env({ TEST: '123' })
+    .run( new Configuration().config())
+    .alias({
+    }, true)
+    .onLaunched(async (app, log) => {
+        log.info('Application %s launched', app.appName)
+    })
+    .onDone(async (app, log) => {
+        log.info('Application %s done', app.appName)
+    })
+    .onFatalException((error, log) => {
+        log.error('Application error: %s', error.message)
+        return 100
+    })
+
+```
+there has five configure option by Application:components、bootstrap、providers、modules、objects.
+
+Here we provide a [simple example](https://github.com/WilliamGrant/lakutata-demo)
+
+
+## Interduce
 
 1. Application
 2. Component
@@ -43,7 +82,7 @@ lakutata framework the core of main contents include: application instance objec
 7. DTO
 8. Time
 
-### 1.1 descript
+### description
 1. Application
 Application is main Module,That Class base on Module Class,We can init it and inject the applicationton object into the DI container(rootContainer)
 
@@ -119,7 +158,7 @@ export class TestOrmComponent extends Component{
 }
 ```
 
-3. Container
+### 3. Container
 Dependency container include application、component、module、provider
 ![lakutata core](/doc/assets/images/container.png)
 The container can inject not only objects within the framework but also some custom components or objects. Injection is achieved by declaring references.
@@ -128,7 +167,6 @@ import { Component } from "lakutata";
 import { Database } from "lakutata/com/database";
 import { Logger } from "lakutata/com/logger";
 import { Inject } from "lakutata/decorator/di";
-import { DataSource } from "lakutata/orm";
 import { User } from "../entities/db/User";
 export class TestOrmComponent extends Component{
     
@@ -181,11 +219,11 @@ Declare a TestOrmComponent, and then add a declaration to the configuration to t
 ```
 the options component property name must the same as inject method name,if not wolud not be useful
 
-4. Module
+### 4. Module
 Module base on Component
 
 
-5. Alias
+### 5. Alias
 Alias definition is used to specify the path and obtain a stable path address in the program,We usually define it when the program initializes the configuration,such like this:
 ```typescript
 import { Application } from 'lakutata'
@@ -201,24 +239,12 @@ Application
         '@rootPath': path.resolve(__dirname, './file'),
         '@xml': '@rootPath/xml'
     }, true)
-    .onLaunched(async (app, log) => {
-        log.info('Application %s launched', app.appName)
-    })
-    .onDone(async (app, log) => {
-        log.info('Application %s done', app.appName)
-    })
-    .onFatalException((error, log) => {
-        log.error('Application error: %s', error.message)
-        return 100
-    })
-
 ```
 The Alise alias and the specified path are configured here. When running the application, we will get the correct path.
 ```typescript
 import { Application, Component } from "lakutata";
 import { Inject } from "lakutata/decorator/di";
 export class TestAliasComponent extends Component {
-
 
     @Inject(Application)
     protected readonly app: Application
@@ -232,7 +258,7 @@ export class TestAliasComponent extends Component {
 Use the alias of the app instance to get the path
 
 
-6. Provider
+### 6. Provider
 The provider is responsible for providing methods to obtain basic objects and program running environment variables. For example, the env of the node process, we can add some custom env to the process.env
 ```typescript
 import { Application } from 'lakutata'
@@ -244,66 +270,111 @@ Application
 ```
 
 
-7. DTO
+### 7. DTO
 
+#### HTTPAction 
 Dto is often used to verify whether structures and values meet requirements,you can used it for controller param,component,object,such like that:
 ```ts
-    @HTTPAction('/test/:id', ['GET', 'POST'], TestDTO)
-    @CLIAction('test3', TestDTO)
-    @ServiceAction({
-        act: 'test3',
-        bbc: {
-            abc: true,
-            ccc: 1
-        }
-    })
-    public async test3(inp: ActionPattern<TestDTO>) {
+    @HTTPAction('/test2', 'POST',TestDTO)
+    public async test2(ipn:ActionPattern<TestDTO>){
+        return 'Validate success!'
+    }
+```
+
+request demo
+```shell
+curl --location --request POST 'http://127.0.0.1:3000/test2' \
+--header 'User-Agent: Apifox/1.0.0 (https://apifox.com)' \
+--header 'Content-Type: application/json' \
+--header 'Accept: */*' \
+--header 'Host: 127.0.0.1:3000' \
+--header 'Connection: keep-alive' \
+--data-raw '{
+    "id":"12312131",
+    "count":213
+}'
+```
+#### CLIAction 
+DTO strict option is useful,If you use the Cli command line mode to request the controller, because the value passing will cause verification errors, some verifications can use non-strict verification, and the validator will try to convert the available values
+```typescript
+export class CliTestDTO extends DTO {
+    @Expect(DTO.String().required())
+    public id: string
+
+    @Expect(DTO.Number().required().strict(false).description('please input number'))
+    public count: number
+}
+```
+The application should set the cli entry point and controller entry point as configured in the demo, as well as configure the controller
+```typescript
+import { type ActionPattern, Application } from "lakutata";
+import { ContextType, Controller } from "lakutata/com/entrypoint";
+import { CLIAction, HTTPAction, ServiceAction } from "lakutata/decorator/ctrl";
+import { CliTestDTO } from "../lib/dto/CliTestDTO";
+
+export class TestController extends Controller {
+
+    @CLIAction('test3', CliTestDTO)
+    public async test3(inp: ActionPattern<CliTestDTO>) {
         if (this.context.type === ContextType.CLI) console.log('cli!')
         console.log(inp, this.context.type)
         return 'oh!!!!!!!!!!' + this.getEnv('TEST', 'abcd')
     }
+}
 ```
-
-
-8. Time
-lakutata core lib include Time tool class.you can get application's uptime or import time lib inside your component or module.
-
-
-
-## 💫 use
-
--   install lakutata dependency
-
-```bash
-npm i lakutata
+cli command result:
+```shell
+[14:33:20.525] INFO (test.app/118897): Application test.app launched
+> test3 --id 1231 --count 123131
+TestOrmComponent init!
+[14:33:44.739] INFO (test.app/118897): test.app
+cli!
+{ id: '1231', count: 123131 } CLI
 ```
--   install dependency
-
-```bash
-npm install
-```
-### application init
-
-We uselly init App begin from setting Application options.after initlization options finished,We will get the new application instance that needs to be configured.
-
+#### ServiceAction
+DTO supports method calls between services through sockets, so socket.io is built in. We inject it by using the DTO decorator,such like this:
 ```typescript
-Application
-    .env({ TEST: '123' })
-    .run( new Configuration().config())
-    .alias({
-    }, true)
-    .onLaunched(async (app, log) => {
-        log.info('Application %s launched', app.appName)
+export class TestController extends Controller {
+    
+    @ServiceAction({
+        act: 'test',
+        method:'test5'
     })
-    .onDone(async (app, log) => {
-        log.info('Application %s done', app.appName)
-    })
-    .onFatalException((error, log) => {
-        log.error('Application error: %s', error.message)
-        return 100
-    })
-
+    public async test5(inp:ActionPattern<TestDTO>){
+        console.log('test5',inp)
+        return '5555'
+    }
+}
 ```
-there has five configure option by Application:components、bootstrap、providers、modules、objects.
+If you want to call it through a socket or another service's socket, you need to keep the parameter object consistent. it means:
+```typescript
+    //This object we will treat as the key to the matching method
+   const key:object= {
+            act: 'test',
+            method:'test5'
+    }
+```
+Other services and socket clients need this key to call the decorated methods in lakutata
+```typescript
+//socket.io client demo
+const socket = io('http://127.0.0.1:3001');
 
-Here we provide a [simple example](https://github.com/WilliamGrant/lakutata-demo)
+socket.on('connect', () => {
+  console.log('Connected to the server');
+});
+
+socket.emit('message', 'Hello, server!');
+
+socket.on('response', (data) => {
+  // 从服务器接收到的数据
+  console.log('Received data from server:', data);
+});
+
+socket.on('error', (error) => {
+  // 从服务器接收到的错误信息
+  console.error('Error from server:', error);
+});
+```
+
+### 8. Time
+lakutata core lib include Time tool class.you can get application's uptime or import time lib inside your code.

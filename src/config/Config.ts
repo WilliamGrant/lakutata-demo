@@ -1,16 +1,19 @@
-import { DataSource, DataSourceOptions } from "lakutata/orm";
 import { DataBaseConfig } from "./DataBaseConfig";
 import { DatabaseType } from "../lib/enum/DataBaseType";
 import { ApplicationOptions } from "lakutata";
-import { BuildEntrypoints, BuildHTTPEntrypoint, HTTPContext } from "lakutata/com/entrypoint";
+import { BuildCLIEntrypoint, BuildEntrypoints, BuildHTTPEntrypoint, BuildServiceEntrypoint, CLIContext, HTTPContext, ServiceContext } from "lakutata/com/entrypoint";
 import { TestController } from "../controllers/TestController";
 import { TestOrmComponent } from '../components/TestOrmComponent'
 import Fastify from 'fastify'
-import { As } from 'lakutata/helper'
+import { As, DevNull } from 'lakutata/helper'
 import { Database } from "lakutata/com/database";
 import path from "path";
 import { TestAliasComponent } from "../components/TestAliasComponent";
 import { EmitEventComponent } from "../components/EmitEventComponet";
+import { createInterface } from "readline";
+import { Command } from "commander";
+import { createServer } from "node:http";
+import { Server as SocketIOServer } from "socket.io"
 
 
 export class Configuration {
@@ -56,11 +59,11 @@ export class Configuration {
                 testOrmCompoment: {
                     class: TestOrmComponent
                 },
-                testAliasComponent:{
-                    class:TestAliasComponent
+                testAliasComponent: {
+                    class: TestAliasComponent
                 },
-                emitEventComponent:{
-                    class:EmitEventComponent
+                emitEventComponent: {
+                    class: EmitEventComponent
                 },
                 entrypoint: BuildEntrypoints({
                     controllers: [
@@ -95,6 +98,77 @@ export class Configuration {
                         fastify.listen({ port: 3000, host: '0.0.0.0' })
                         onDestroy(async () => {
                             await fastify.close()
+                        })
+                    }),
+                    cli: BuildCLIEntrypoint((module, cliMap, handler, onDestroy) => {
+                        const inf = createInterface({
+                            input: process.stdin,
+                            output: process.stdout
+                        })
+                            .on('SIGINT', () => process.exit(2))
+                            .on('line', input => {
+                                try {
+                                    const CLIProgram: Command = new Command().exitOverride()
+                                    cliMap.forEach((dtoJsonSchema, command: string) => {
+                                        const cmd = new Command(command).exitOverride()
+                                        for (const p in dtoJsonSchema.properties) {
+                                            const attr = dtoJsonSchema.properties[p]
+                                            cmd.option(`--${p} <${attr.type}>`, attr.description)
+                                        }
+                                        cmd.action(async (args) => {
+                                            //Handle cli
+                                            await handler(new CLIContext({ command: command, data: args }))
+                                        })
+                                        CLIProgram.addCommand(cmd)
+                                    })
+                                    CLIProgram.addCommand(new Command('exit').allowUnknownOption(true).action(() => process.exit()))
+                                    CLIProgram.parse(input.split(' '), { from: 'user' })//使用命令行传入的参数进行执行
+                                } catch (e: any) {
+                                    DevNull(e)
+                                }
+                            })
+                        onDestroy(() => {
+                            inf.close()
+                        })
+                    }),
+                    service: BuildServiceEntrypoint((module, handler, onDestroy) => {
+                        const httpServer = createServer()
+                        const server = new SocketIOServer(httpServer, {
+                            cors: {
+                                origin: '*',
+                                methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+                            }
+                        })
+                        server.on('connection', socket => {
+                            socket
+                                .on('message', async (data, fn) => {
+                                    try {
+                                        const content = new ServiceContext({
+                                            data: data
+                                        })
+                                        const result = await handler(content)
+                                        if (fn) {
+                                            fn(result)
+                                        } else {
+                                            socket.emit('response', result)
+                                        }
+                                    } catch (e) {
+                                        socket.emit('error', e)
+                                    }
+                                })
+                                .on('disconnect', async (e) => {
+                                })
+                                .on('ping', async (args) => {
+                                    console.log('接收到ping')
+                                })
+                                .conn.on('packet', async () => {
+                                    //接收到ping
+                                    console.log('接收到心跳包')
+                                })
+                        })
+                        httpServer.listen(3001)
+                        onDestroy(async () => {
+                            server.close()
                         })
                     })
                 }),
