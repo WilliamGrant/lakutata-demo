@@ -378,3 +378,166 @@ socket.on('error', (error) => {
 
 ### 8. Time
 lakutata core lib include Time tool class.you can get application's uptime or import time lib inside your code.
+
+
+### Entrypoint
+Entrypoint is a special component used to initialize the entry of cli, contorller, http, and service services, and map the methods with specified decorator characteristics in the service to metadata and actions. When Entrypoint is initialized, you can configure the handler content of the handler specified in the corresponding Entrypoint, and bundle the metadata given by the decorators of different actions into ActionPatternMap and ActionPatternManager to implement the execution of the action when the specified entry handler is running. For example, the route and Fastify routeMap configured in HttpAction
+```typescript
+Application
+    .env({TEST: '123'})
+    .run(() => ({
+        id: 'test.app',
+        name: 'TestApp',
+        timezone: 'auto',
+        components: {
+            entrypoint: BuildEntrypoints({
+                controllers: [
+                    TestController1
+                ],
+                http: BuildHTTPEntrypoint((module, routeMap, handler, onDestroy) => {
+                    const fastify = Fastify({
+                        logger: false
+                    })
+                    routeMap.forEach((methods: Set<any>, route: string) => {
+                        methods.forEach(method => {
+                            fastify.route({
+                                url: route,
+                                method: method,
+                                handler: async (request, reply) => {
+                                    const ac = new AbortController()
+                                    reply.raw.on('close', () => {
+                                        console.log('close')
+                                        ac.abort()
+                                    })
+                                    return await handler(new HTTPContext({
+                                        route: request.routeOptions.url!,
+                                        method: request.method,
+                                        request: request.raw,
+                                        response: reply.raw,
+                                        data: {...As<Record<string, string>>(request.query ? request.query : {}), ...As<Record<string, string>>(request.body ? request.body : {})}
+                                    }), ac)
+                                }
+                            })
+                        })
+                    })
+                    fastify.listen({port: 3000, host: '0.0.0.0'})
+                    onDestroy(async () => {
+                        await fastify.close()
+                    })
+                }),
+                cli: BuildCLIEntrypoint((module, cliMap, handler, onDestroy) => {
+                    const inf = createInterface({
+                        input: process.stdin,
+                        output: process.stdout
+                    })
+                        .on('SIGINT', () => process.exit(2))
+                        .on('line', input => {
+                            try {
+                                const CLIProgram: Command = new Command().exitOverride()
+                                cliMap.forEach((dtoJsonSchema, command: string) => {
+                                    const cmd = new Command(command).exitOverride()
+                                    for (const p in dtoJsonSchema.properties) {
+                                        const attr = dtoJsonSchema.properties[p]
+                                        cmd.option(`--${p} <${attr.type}>`, attr.description)
+                                    }
+                                    cmd.action(async (args) => {
+                                        //Handle cli
+                                        await handler(new CLIContext({command: command, data: args}))
+                                    })
+                                    CLIProgram.addCommand(cmd)
+                                })
+                                CLIProgram.addCommand(new Command('exit').allowUnknownOption(true).action(() => process.exit()))
+                                CLIProgram.parse(input.split(' '), {from: 'user'})//使用命令行传入的参数进行执行
+                            } catch (e: any) {
+                                DevNull(e)
+                            }
+                        })
+                    onDestroy(() => {
+                        inf.close()
+                    })
+                }),
+                service: BuildServiceEntrypoint((module, handler, onDestroy) => {
+                    const httpServer = createServer()
+                    const server = new SocketIOServer()
+                    server.on('connection', socket => {
+                        socket.on('message', async (data, fn) => {
+                            return fn(await handler(new ServiceContext({
+                                data: data
+                            })))
+                        })
+                    })
+                    server.attach(httpServer)
+                    httpServer.listen(3001, '0.0.0.0')
+                    onDestroy(async () => {
+                        server.close()
+                    })
+                })
+            })
+        },
+        bootstrap: [
+            // 'testModule',
+            // 'testComponent',
+            // 'testProvider',
+            'entrypoint'
+        ]
+    }))
+```
+Not only HttpAction, but also ServiceAction and CliAction. They are similar
+
+### Decorators
+There are many types of decorators, including asst,ctrl,di, dto,orm. 
+#### 1. asst
+asst include: before and after，These auxiliary methods are usually used for logging, permission checking and other functions. They can be executed before or after the method is executed to record or process important information, such as the number of method calls, execution time, etc.
+
+Here we give an example of authentication
+```typescript
+
+import { Exception } from "lakutata";
+
+//Defining an exception class
+export class NoAuthorizationException extends Exception {
+    public errno: string | number = 'E_NO_AUTHORIZATION'
+}
+
+```
+
+```typescript
+import { NoAuthorizationException } from "../lib/exception/NoAuthorizationException";
+
+export class AuthComponent {
+
+    // TODO: Implement AuthComponent
+
+    //check if user is authenticated
+    public static isAuthenticated() {
+        //check user is authenticated
+        const isAuthenticated = false;//for example:it's true
+        if (!isAuthenticated) {
+            throw new NoAuthorizationException('Not Authenticated')    
+        }        
+    }
+}
+```
+Call this decorator and authentication method in our test controller
+```typescript
+    @HTTPAction('/test6', 'GET')
+    @Before(AuthComponent.isAuthenticated)  //Use the verification method of the authentication component before calling the test6 method
+    public async test6(inp: ActionPattern<TestDTO>) {
+        console.log('test6', inp)
+        return '6666'
+    }
+```
+result
+```json
+{
+    "statusCode": 500,
+    "error": "Internal Server Error",
+    "message": "Not Authenticated"
+}
+```
+#### 2.ctrl
+ctrl include：cli、service、http.These decorators usually need to match the corresponding Entrypoint component. After declaring the method, add the attributes to the method metadata, and call the corresponding entry component through the matching information in the service instance.
+
+#### 3.di
+
+

@@ -8,6 +8,8 @@ import { TestOrmComponent } from "../components/TestOrmComponent";
 import { TestAliasComponent } from "../components/TestAliasComponent";
 import { EmitEventComponent } from "../components/EmitEventComponet";
 import { CliTestDTO } from "../lib/dto/CliTestDTO";
+import { Before } from "lakutata/decorator/asst";
+import { AuthComponent } from "../components/AuthComponent";
 
 export class TestController extends Controller {
 
@@ -18,14 +20,14 @@ export class TestController extends Controller {
     protected readonly app: Application
 
     @Inject('testOrmCompoment')
-    protected readonly testOrm:TestOrmComponent
+    protected readonly testOrm: TestOrmComponent
 
     @Inject('testAliasComponent')
-    protected readonly testAlias:TestAliasComponent
+    protected readonly testAlias: TestAliasComponent
 
 
     @Inject('emitEventComponent')
-    protected readonly emitEvent:EmitEventComponent
+    protected readonly emitEvent: EmitEventComponent
 
     protected async init(): Promise<void> {
         this.log.info(this.app.appName, 'init')
@@ -36,13 +38,13 @@ export class TestController extends Controller {
     }
 
     @HTTPAction('/test', 'GET')
-    public async test(){
+    public async test() {
         return 'this test action!'
     }
 
 
-    @HTTPAction('/test2', 'POST',TestDTO)
-    public async test2(ipn:ActionPattern<TestDTO>){
+    @HTTPAction('/test2', 'POST', TestDTO)
+    public async test2(ipn: ActionPattern<TestDTO>) {
         return 'Validate success!'
     }
 
@@ -55,27 +57,34 @@ export class TestController extends Controller {
 
 
     @HTTPAction('/testOrmMethod', 'GET')
-    public async testOrmMethod(){
+    public async testOrmMethod() {
         return await this.testOrm.get()
     }
 
     @HTTPAction('/testAlias', 'GET')
-    public async testAliasMethod(){
+    public async testAliasMethod() {
         return await this.testAlias.getPath()
     }
 
     @HTTPAction('/testEmit', 'GET')
-    public async testEmitMethod(){
+    public async testEmitMethod() {
         return await this.emitEvent.testEmit()
     }
 
-    
+
     @ServiceAction({
         act: 'test',
-        method:'test5'
+        method: 'test5'
     })
-    public async test5(inp:ActionPattern<TestDTO>){
-        console.log('test5',inp)
+    public async test5(inp: ActionPattern<TestDTO>) {
+        console.log('test5', inp)
         return '5555'
+    }
+
+    @HTTPAction('/test6', 'GET')
+    @Before(AuthComponent.isAuthenticated)
+    public async test6(inp: ActionPattern<TestDTO>) {
+        console.log('test6', inp)
+        return '6666'
     }
 }
