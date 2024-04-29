@@ -3,13 +3,11 @@ import { ContextType, Controller } from "lakutata/com/entrypoint";
 import { Logger } from "lakutata/com/logger";
 import { CLIAction, HTTPAction, ServiceAction } from "lakutata/decorator/ctrl";
 import { Inject } from "lakutata/decorator/di";
-import { TestDTO } from "../lib/dto/TestDTO";
+import { TestDTO } from "../lib/dto/http/TestDTO";
 import { TestOrmComponent } from "../components/TestOrmComponent";
 import { TestAliasComponent } from "../components/TestAliasComponent";
 import { EmitEventComponent } from "../components/EmitEventComponet";
-import { CliTestDTO } from "../lib/dto/CliTestDTO";
-import { Before } from "lakutata/decorator/asst";
-import { AuthComponent } from "../components/AuthComponent";
+import { CliTestDTO } from "../lib/dto/cli/CliTestDTO";
 
 export class TestController extends Controller {
 
@@ -79,12 +77,5 @@ export class TestController extends Controller {
     public async test5(inp: ActionPattern<TestDTO>) {
         console.log('test5', inp)
         return '5555'
-    }
-
-    @HTTPAction('/test6', 'GET')
-    @Before(AuthComponent.isAuthenticated)
-    public async test6(inp: ActionPattern<TestDTO>) {
-        console.log('test6', inp)
-        return '6666'
     }
 }

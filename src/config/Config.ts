@@ -14,6 +14,8 @@ import { createInterface } from "readline";
 import { Command } from "commander";
 import { createServer } from "node:http";
 import { Server as SocketIOServer } from "socket.io"
+import { DiController } from "../controllers/DiController";
+import { AuthComponent } from "../components/AuthComponent";
 
 
 export class Configuration {
@@ -65,9 +67,13 @@ export class Configuration {
                 emitEventComponent: {
                     class: EmitEventComponent
                 },
+                authComponent: {
+                    class: AuthComponent
+                },
                 entrypoint: BuildEntrypoints({
                     controllers: [
-                        TestController
+                        TestController,
+                        DiController
                     ],
                     http: BuildHTTPEntrypoint((module, routeMap, handler, onDestroy) => {
                         const fastify = Fastify({
@@ -81,7 +87,7 @@ export class Configuration {
                                     handler: async (request, reply) => {
                                         const ac = new AbortController()
                                         reply.raw.on('close', () => {
-                                            console.log('close')
+                                            console.log('Http Action Finish')
                                             ac.abort()
                                         })
                                         return await handler(new HTTPContext({

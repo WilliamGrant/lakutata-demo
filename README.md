@@ -539,5 +539,90 @@ result
 ctrl include：cli、service、http.These decorators usually need to match the corresponding Entrypoint component. After declaring the method, add the attributes to the method metadata, and call the corresponding entry component through the matching information in the service instance.
 
 #### 3.di
+There are four basic decorators for dependency injection: Autoload, Configurable, Inject, and Lifetime.Based on the BaseObject type, set the target object through Reflect.defineMetadata to implement constructor injection
+
+Autoload 
+When you use the autoload class decorator, you do not need to declare the component you are going to reference in the configuration file.
+
+Configurable
+    
 
 
+Inject
+The Inject decorator will query whether there is a corresponding instance of the specified type of metadata. If not, a new instance will be created and injected into the metadata container, and the instance will be returned to the object variable.
+The inject decorator can define names or further process function declarations to solve some problems. such like that
+```typescript
+export class TestOrmComponent extends Component {
+
+  @Inject('db', function (db) {
+    return db.getRepository(InterfaceInfo)
+  })
+  public InterfaceRespostry: any
+
+  public async sh() {
+    const data = await this.InterfaceRespostry.findAndCount({})
+    console.log('sh test', data)
+  }
+}
+```
+
+Lifetime
+The Lifetime class decorator is used to set the scope of application of the class, the usage cycle and the usage mode of the instance,lakutata life time included:ApplicationSingleton、ModuleSingleton、Singleton、Transient、Scoped.
+```typescript
+@Lifetime('SINGLETON',true)
+export class AuthComponent extends Component {
+}
+```
+Application singleton
+Application singleton means that the life cycle of this object runs through the entire application operation process
+
+Module singleton
+Module singleton means that an instance of this type will exist and be callable within the declaration lifecycle of this module and will be destroyed along with the module.
+
+Transient
+Transient only exists during the execution of an action and will be destroyed after the execution is completed.
+
+Scoped
+Each new call to a scoped class or module will create a new instance. Repeated requests for the same scoped class or module during the same call will not create a new instance.
+
+#### 3.DTO
+There are four types of DTO: Accept, Expect, IndexSignature, Return
+ 
+Accept is a method decorator used to verify whether the passed parameters meet the DTO validation standards
+```typescript
+    @Accept(ContainerTTYConsoleSizeOptions.required())
+    public async testAcce(options: ContainerTTYConsoleSizeOptions): Promise<void> {
+        await this.#exec.resize({
+            w: options.cols,
+            h: options.rows
+        })
+    }
+```
+
+```typescript
+// ContainerTTYConsoleSizeOptions
+import {DTO} from '../../../../lib/core/DTO.js'
+import {Expect} from '../../../../decorators/dto/Expect.js'
+
+export class ContainerTTYConsoleSizeOptions extends DTO {
+
+    @Expect(DTO.Number().required())
+    public cols: number
+
+    @Expect(DTO.Number().required())
+    public rows: number
+}
+```
+We use Accept to validate method parameters, and Expect to define what data and format a DTO attribute requires.
+
+IndexSignature set a metadata that contains the object index signature defined by the Schema. The implementation uses TypeScript's type system and generics to better express type information. This ensures that when creating an object, the property signature passed in does not conform to the expected pattern or structure.
+
+The Return decorator is used to verify whether the return value meets the requirements. If not, an exception is thrown to avoid other errors.
+```typescript
+        class TestClass {
+            @Return(TestDTO.required())
+            public testReturn(out: any): TestDTO {
+                return out
+            }
+        }
+```
