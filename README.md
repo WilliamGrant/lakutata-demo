@@ -545,7 +545,6 @@ Autoload
 When you use the autoload class decorator, you do not need to declare the component you are going to reference in the configuration file.
 
 Configurable
-    
 
 
 Inject
@@ -625,4 +624,17 @@ The Return decorator is used to verify whether the return value meets the requir
                 return out
             }
         }
+```
+
+#### orm
+Lakutata integrates the typeorm decorator and can be called directly，here is [typeorm decorator doc](https://typeorm.bootcss.com/decorator-reference)
+
+#### Error
+The exception class is provided, and you can extend the exception method by yourself.
+```typescript
+import { Exception } from "lakutata";
+
+export class NoAuthorizationException extends Exception {
+    public errno: string | number = 'E_NO_AUTHORIZATION'
+}
 ```
